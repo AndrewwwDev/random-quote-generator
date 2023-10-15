@@ -1,15 +1,29 @@
 import { useEffect, useState } from "react";
-import { getRandomQuote } from "./utils/quote";
+import { getAuthor, getRandomQuote } from "./utils/quote-fetch";
 
 function App() {
   const [quote, setQuote] = useState();
+  const [authorQuotes, setAuthorQuotes] = useState();
+  const [author, setAuthor] = useState();
 
   async function getQuote() {
     try {
       const randomQuote = await getRandomQuote();
       setQuote(randomQuote);
+      setAuthorQuotes();
+      setAuthor("");
     } catch (error) {
-      console.error("Error en la solicitu:", error);
+      console.error("Error en la solicitud:", error);
+    }
+  }
+
+  async function getAuthorQ(author) {
+    try {
+      const aq = await getAuthor(author);
+      setAuthorQuotes(aq);
+      setQuote();
+    } catch (error) {
+      console.error("Error en la solicitud:", error);
     }
   }
 
@@ -17,6 +31,10 @@ function App() {
     getQuote();
   }, []);
 
+  useEffect(() => {
+    if (author === "") return;
+    getAuthorQ(author);
+  }, [author]);
   return (
     <>
       <header className="fixed right-3 top-3">
@@ -50,14 +68,48 @@ function App() {
               <button
                 type="button"
                 className="flex justify-between items-center py-12 px-7 w-full group hover:bg-gray-1"
+                onClick={() => setAuthor(quote.quoteAuthor)}
               >
-                <h1>Autor</h1>
+                <div>
+                  <h3 className="text-gray-2 group-hover:text-white text-2xl font-medium text-left">
+                    {quote.quoteAuthor}
+                  </h3>
+                  <p className="text-gray-3 group-hover:text-white text-sm font-medium text-left">
+                    {quote.quoteGenre}
+                  </p>
+                </div>
+                <span className="text-right text-white">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-6 h-6"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3"
+                    />
+                  </svg>
+                </span>
               </button>
             </div>
           </div>
         </main>
       )}
-
+      {author && authorQuotes && (
+        <section className="container mx-auto my-20 md:w-3/4 px-5">
+          <h3 className="text-gray-1 text-4xl font-bold text-left">{author}</h3>
+          {authorQuotes.map((quote) => (
+            <p
+              key={quote._id}
+              className="text-black text-4xl font-medium border-l-8 border-yellow-300 pl-12 md:pl-24 my-16"
+            >{`"${quote.quoteText}"`}</p>
+          ))}
+        </section>
+      )}
       <footer className="text-sm text-center py-6">
         created by <span className="font-bold">Andrew</span> - devChallenges.io
       </footer>
